@@ -13,7 +13,7 @@ def ang2coord(ang):
 
 
 def build_game_map(rockets_list, cur_ang, cur_time):
-    disp = True # False
+    disp = False # True #
     max_time = 400
     max_range = 10000
     angs_options = 31
@@ -30,6 +30,7 @@ def build_game_map(rockets_list, cur_ang, cur_time):
         else:
             COLOR = FIELD_COLORS[id % len(FIELD_COLORS)]
 
+        ## old, slow veraion:
         # t_and_ang = rocket.interception_points
         # for t, ang, inter_range in t_and_ang:
         #     if t+1 - cur_time < 1:
@@ -45,22 +46,28 @@ def build_game_map(rockets_list, cur_ang, cur_time):
             print("rocket track: " + str(rocket.path))
             continue
         t_and_ang = np.asarray(rocket.interception_points)
+        ##init temp data structures:
         temp_game_map[:] = 0
         temp_inter_ranges_map[:] = max_range
 
+        ##remove past times:
         t_and_ang[:, 0] -= cur_time
         t_and_ang = t_and_ang[t_and_ang[:, 0] > 0]
         t_and_ang = t_and_ang[t_and_ang[:, 0] < max_time]
 
+        ##build temp maps for current track:
         angs = ang2coord(t_and_ang[:, 1])
         temp_game_map[t_and_ang[:, 0], angs] = 1
         temp_inter_ranges_map[t_and_ang[:, 0], angs] = t_and_ang[:, 2]
 
+        ## choose right update for each cell:
         closest_inter = np.argmin(np.dstack((temp_inter_ranges_map, inter_ranges_map)), 2)
+        chosen = [closest_inter == 0]
+        inter_ranges_map[tuple(chosen)] = temp_inter_ranges_map[tuple(chosen)]
         for i in range(3):
             game_map_i = game_map[:, :, i]
-            chosen = [closest_inter == 0]
-            game_map_i[chosen] = temp_game_map[chosen] * COLOR[i]
+            # game_map_i[chosen] = temp_game_map[chosen] * COLOR[i]
+            game_map_i[tuple(chosen)] = temp_game_map[tuple(chosen)] * COLOR[i]
             game_map[:, :, i] = game_map_i
         a=1
 
