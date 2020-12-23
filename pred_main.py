@@ -157,12 +157,10 @@ def my_main():
     my_intr = MyInterceptor()
     r_locs = i_locs = c_locs = []
     ang = score = 0
-    for stp in range(10000):
+    for stp in range(1000):
         if stp % 100 == 0:
             print("step", stp, "score", score, "rockets", len(r_locs))
         action_button = my_intr.calculate_action(r_locs, i_locs, c_locs, ang, score, stp)
-        #if action_button == SHOOT:
-        #    action_button = STRAIGHT  ## Rafi
         r_locs, i_locs, c_locs, ang, score = Game_step(action_button)
     # Draw()
     print(score)
