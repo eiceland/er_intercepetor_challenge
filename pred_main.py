@@ -72,6 +72,9 @@ class MyInterceptor:
         self.time = 0
         self.t_no_new_rocket = 0
         self.intr_paths_mat = self.get_interceprtion_mat()
+        self.game_map = game_map.GameMap()
+        self.new_rockets = []
+        self.removed_rockets = []
 
     def get_interceptor_path(self, ang0, v0=800, x0=-2000.0, y0=0.0, world_width=10000, fric=5e-7, dt=0.2, g=9.8):
         max_path_len = 353
@@ -111,15 +114,22 @@ class MyInterceptor:
     def calculate_action(self, r_locs, i_locs, c_locs, ang, score, t):
         self.time = t
         self.t_no_new_rocket += 1
+        self.new_rockets = []
+
         if (len(r_locs) > 0):
             x1, y1 = r_locs[-1]
         if (len(r_locs) > 0) and (self.is_new_rocket(x1, y1)):
             rocket = MyRocket(*r_locs[-1], t, c_locs, self.intr_paths_mat)
             self.rockets_list.append(rocket)
             self.t_no_new_rocket = 0
+            self.new_rockets.append(rocket.id)
 
         cur_game_map = game_map.build_game_map(self.rockets_list, ang, self.time)  ##Rafi
+        cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, self.new_rockets, self.removed_rockets)
+        assert (cur_game_map == cur_game_map1).all()
+        print("assertion pass")
 
+        self.removed_rockets = []
         if (self.strategy is None) and (len(self.rockets_list) > 0):
             rocket_to_hit = self.rockets_list[0]
             for p in rocket_to_hit.interception_points:
@@ -141,13 +151,16 @@ class MyInterceptor:
             elif self.strategy[0] == t:
                 action = SHOOT
                 self.strategy = None
+                self.removed_rockets.append(self.rockets_list[0].id)
                 self.rockets_list.remove(self.rockets_list[0])
+
             else:
                 action = STRAIGHT
 
         # remove rockets that landed
         for r in self.rockets_list:
             if r.path[-1][2] < t:
+                self.removed_rockets.append(r.id)
                 self.rockets_list.remove(r)
         return action
 
@@ -157,7 +170,7 @@ def my_main():
     my_intr = MyInterceptor()
     r_locs = i_locs = c_locs = []
     ang = score = 0
-    for stp in range(1000):
+    for stp in range(100):
         if stp % 100 == 0:
             print("step", stp, "score", score, "rockets", len(r_locs))
         action_button = my_intr.calculate_action(r_locs, i_locs, c_locs, ang, score, stp)
