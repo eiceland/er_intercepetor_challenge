@@ -100,14 +100,14 @@ class GameMap:
 
     def update_map(self, cur_time, rockets_list, new_rockets, removed_rockets, cur_ang):
         self.game_map[:-1] = self.game_map[1:]
-        self.game_map[-1, :, :] = 0
+        self.game_map[-1] = self.color_dict['empty']
         ## BUG: last line is different than old version.
-        self.game_map[-1] = [ self.color_dict['empty'] if (len(self.game_dict[(cur_time - 1 )%self.max_time, a]) ==0) else
-                              self.color_dict[min(self.game_dict[((cur_time-1)%self.max_time, a)],
-                                                  key = lambda k : self.game_dict[((cur_time-1)%self.max_time, a)][k])]
-                              for a in range(self.angs_options)]
+        # self.game_map[-1] = [ self.color_dict['empty'] if (len(self.game_dict[(cur_time - 1 )%self.max_time, a]) ==0) else
+        #                       self.color_dict[min(self.game_dict[((cur_time-1)%self.max_time, a)],
+        #                                           key = lambda k : self.game_dict[((cur_time-1)%self.max_time, a)][k])]
+        #                       for a in range(self.angs_options)]
         for id in removed_rockets:
-            print("removing", id)
+            # print("removing", id)
             r = self.get_rocket_by_id(rockets_list, id)
             if r is None: # happens if there are no interception points.
                 continue

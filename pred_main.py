@@ -126,13 +126,14 @@ class MyInterceptor:
             self.new_rockets.append(rocket.id)
 
         cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, self.new_rockets, self.removed_rockets, ang)
-        compare = False
+        compare = False#True#
         if compare:
             cur_game_map = game_map.build_game_map(self.rockets_list, ang, self.time)  ##Rafi
             if not (cur_game_map == cur_game_map1).all():
                 plt.imshow(np.hstack((cur_game_map, 255*np.ones((cur_game_map.shape[0], 1, 3)), cur_game_map1, 255*np.ones((cur_game_map.shape[0], 1, 3)), np.abs(cur_game_map1-cur_game_map))))
                 plt.show()
-            print("assertion pass")
+            else:
+                print("assertion pass")
 
         self.removed_rockets = []
         if (self.strategy is None) and (len(self.rockets_list) > 0):
@@ -175,7 +176,7 @@ def my_main():
     my_intr = MyInterceptor()
     r_locs = i_locs = c_locs = []
     ang = score = 0
-    for stp in range(100):
+    for stp in range(1000):
         if stp % 100 == 0:
             print("step", stp, "score", score, "rockets", len(r_locs))
         action_button = my_intr.calculate_action(r_locs, i_locs, c_locs, ang, score, stp)
