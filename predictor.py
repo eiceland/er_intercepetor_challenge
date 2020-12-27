@@ -112,7 +112,7 @@ class MyInterceptor:
                 return False
         return True
 
-    def calculate_action(self, r_locs, i_locs, c_locs, ang, score, t):
+    def calculate_map_and_score(self, r_locs, i_locs, c_locs, ang, score, t):
         self.time = t
         self.t_no_new_rocket += 1
         self.new_rockets = []
@@ -168,7 +168,21 @@ class MyInterceptor:
             if r.path[-1][2] < t:
                 self.removed_rockets.append(r.id)
                 self.rockets_list.remove(r)
-        return action
+        return action, cur_game_map1
+
+    def calc_score(self, action, game_map, ang):
+        #TODO: calc real scores
+        self.my_score = 0
+        if action == SHOOT:
+            if game_map[0, game_map.ang2coord(ang), :].max() > 32: ## a city rocket
+                self.my_score = 14
+            elif game_map[0, game_map.ang2coord(ang), :].max() > 0: ## a field rocket
+                self.my_score = 4
+            else:
+                self.my_score = 0
+
+        #TODO: what about double-interceptions? Do they get double-score?
+        return self.my_score
 
 
 def my_main():
@@ -179,7 +193,7 @@ def my_main():
     for stp in range(1000):
         if stp % 100 == 0:
             print("step", stp, "score", score, "rockets", len(r_locs))
-        action_button = my_intr.calculate_action(r_locs, i_locs, c_locs, ang, score, stp)
+        action_button, game_map, my_score = my_intr.calculate_map_and_score(r_locs, i_locs, c_locs, ang, score, stp)
         r_locs, i_locs, c_locs, ang, score = Game_step(action_button)
     # Draw()
     print(score)

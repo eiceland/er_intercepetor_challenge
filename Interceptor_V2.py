@@ -178,7 +178,8 @@ def Check_interception():
             if ((r.x - intr.x)**2 + (r.y - intr.y)**2)**0.5 < turret.prox_radius:
                 rocket_list.remove(r)
                 Explosion(intr.x, intr.y)
-                if intr in interceptor_list: interceptor_list.remove(intr)
+                if intr in interceptor_list:
+                    interceptor_list.remove(intr)
                 world.score = world.score + world.reward_intercept
 
 
