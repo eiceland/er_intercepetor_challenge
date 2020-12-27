@@ -30,15 +30,6 @@ def build_game_map(rockets_list, cur_ang, cur_time):
         else:
             COLOR = FIELD_COLORS[id % len(FIELD_COLORS)]
 
-        ## old, slow veraion:
-        # t_and_ang = rocket.interception_points
-        # for t, ang, inter_range in t_and_ang:
-        #     if t+1 - cur_time < 1:
-        #         continue
-        #     ang_coord = ang2coord(ang)
-        #     if inter_ranges_map[t+1 - cur_time, ang_coord] > inter_range:
-        #         game_map[t+1 - cur_time, ang_coord, :] = COLOR
-
         ## fast version:
         if len(rocket.interception_points) == 0:
             print("warning: rocket without interceptions. ")
@@ -109,7 +100,8 @@ class GameMap:
 
     def update_map(self, cur_time, rockets_list, new_rockets, removed_rockets, cur_ang):
         self.game_map[:-1] = self.game_map[1:]
-
+        self.game_map[-1, :, :] = 0
+        ## BUG: last line is different than old version.
         self.game_map[-1] = [ self.color_dict['empty'] if (len(self.game_dict[(cur_time - 1 )%self.max_time, a]) ==0) else
                               self.color_dict[min(self.game_dict[((cur_time-1)%self.max_time, a)],
                                                   key = lambda k : self.game_dict[((cur_time-1)%self.max_time, a)][k])]
@@ -133,7 +125,7 @@ class GameMap:
             r = self.get_rocket_by_id(rockets_list, id)
             self.color_dict[id] = self.get_color(id, r.city_hit)
             for p in r.interception_points:
-                if (p[0] < cur_time):
+                if (p[0] <= cur_time):
                     continue
                 dict_key = (p[0] % self.max_time, ang2coord(p[1]))
                 self.game_dict[dict_key][id] = p[2]
