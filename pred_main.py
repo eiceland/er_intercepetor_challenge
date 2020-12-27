@@ -2,6 +2,7 @@ import numpy as np
 from Interceptor_V2 import Init, Draw, Game_step
 import game_map
 import itertools
+import matplotlib.pyplot as plt
 
 
 ##Enums:
@@ -125,8 +126,13 @@ class MyInterceptor:
             self.new_rockets.append(rocket.id)
 
         cur_game_map = game_map.build_game_map(self.rockets_list, ang, self.time)  ##Rafi
-        cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, self.new_rockets, self.removed_rockets)
-        assert (cur_game_map == cur_game_map1).all()
+        cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, self.new_rockets, self.removed_rockets, ang)
+
+        if not (cur_game_map == cur_game_map1).all():
+            plt.imshow(np.hstack((cur_game_map, 255*np.ones((cur_game_map.shape[0], 1, 3)), cur_game_map1, 255*np.ones((cur_game_map.shape[0], 1, 3)), np.abs(cur_game_map1-cur_game_map))))
+            # plt.imshow(np.abs(cur_game_map1-cur_game_map))
+            plt.show()
+            a=1
         print("assertion pass")
 
         self.removed_rockets = []

@@ -13,7 +13,7 @@ def ang2coord(ang):
 
 
 def build_game_map(rockets_list, cur_ang, cur_time):
-    disp = True # False # True #
+    disp = False # True #
     max_time = 400
     max_range = 10000
     angs_options = 31
@@ -107,8 +107,9 @@ class GameMap:
             COLOR = FIELD_COLORS[id % len(FIELD_COLORS)]
         return COLOR
 
-    def update_map(self, cur_time, rockets_list, new_rockets, removed_rockets):
+    def update_map(self, cur_time, rockets_list, new_rockets, removed_rockets, cur_ang):
         self.game_map[:-1] = self.game_map[1:]
+
         self.game_map[-1] = [ self.color_dict['empty'] if (len(self.game_dict[(cur_time - 1 )%self.max_time, a]) ==0) else
                               self.color_dict[min(self.game_dict[((cur_time-1)%self.max_time, a)],
                                                   key = lambda k : self.game_dict[((cur_time-1)%self.max_time, a)][k])]
@@ -140,6 +141,9 @@ class GameMap:
                 min_id = min(cur_dict, key=lambda k: cur_dict[k])
                # min_id = min(self.game_dict[dict_key], key=lambda k: self.game_dict[k])
                 self.game_map[p[0] - cur_time, ang2coord(p[1])] = self.color_dict[min_id]
+
+        self.game_map[0, :, :] = 0
+        self.game_map[0, ang2coord(cur_ang), :] = GREEN
         return self.game_map
 
 
