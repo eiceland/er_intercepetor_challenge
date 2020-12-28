@@ -32,9 +32,9 @@ def build_game_map(rockets_list, cur_ang, cur_time):
 
         ## fast version:
         if len(rocket.interception_points) == 0:
-            print("warning: rocket without interceptions. ")
-            print("rocket id: " + str(rocket.id))
-            print("rocket track: " + str(rocket.path))
+            #print("warning: rocket without interceptions. ")
+            #print("rocket id: " + str(rocket.id))
+            #print("rocket track: " + str(rocket.path))
             continue
         t_and_ang = np.asarray(rocket.interception_points)
         ##init temp data structures:
@@ -52,8 +52,8 @@ def build_game_map(rockets_list, cur_ang, cur_time):
         temp_inter_ranges_map[t_and_ang[:, 0], angs] = t_and_ang[:, 2]
 
         ## choose right update for each cell:
-        closest_inter = np.argmin(np.dstack((temp_inter_ranges_map, inter_ranges_map)), 2)
-        chosen = [closest_inter == 0]
+        closest_inter = np.argmin(np.dstack((inter_ranges_map, temp_inter_ranges_map)), 2)
+        chosen = [closest_inter == 1]
         inter_ranges_map[tuple(chosen)] = temp_inter_ranges_map[tuple(chosen)]
         for i in range(3):
             game_map_i = game_map[:, :, i]
@@ -76,7 +76,7 @@ def build_game_map(rockets_list, cur_ang, cur_time):
         plt.pause(0.0001)
     return game_map
 
-
+import copy
 class GameMap:
     def __init__(self):
         self.max_time = 400
@@ -85,6 +85,17 @@ class GameMap:
         self.game_map = np.zeros((self.max_time, self.angs_options, 3))
         self.game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
         self.color_dict = {'empty':[0,0,0]}
+        self.old_game_map = np.zeros((self.max_time, self.angs_options, 3))
+        self.old_game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
+
+    def revert(self):
+        self.game_map = self.old_game_map.copy()
+        self.game_dict = copy.deepcopy(self.old_game_dict)
+
+    def update_old(self):
+        self.old_game_map = self.game_map.copy()
+        self.old_game_dict = copy.deepcopy(self.game_dict)
+
 
     def get_rocket_by_id(self, rockets_list, id):
         for r in rockets_list:
@@ -99,13 +110,13 @@ class GameMap:
         return COLOR
 
     def update_map(self, cur_time, rockets_list, new_rockets, removed_rockets, cur_ang):
+        self.update_old()
         self.game_map[:-1] = self.game_map[1:]
         self.game_map[-1] = self.color_dict['empty']
-        ## BUG: last line is different than old version.
-        # self.game_map[-1] = [ self.color_dict['empty'] if (len(self.game_dict[(cur_time - 1 )%self.max_time, a]) ==0) else
-        #                       self.color_dict[min(self.game_dict[((cur_time-1)%self.max_time, a)],
-        #                                           key = lambda k : self.game_dict[((cur_time-1)%self.max_time, a)][k])]
-        #                       for a in range(self.angs_options)]
+
+        for a in range(self.angs_options):
+            self.game_dict[(cur_time%self.max_time,a)] = {}
+
         for id in removed_rockets:
             # print("removing", id)
             r = self.get_rocket_by_id(rockets_list, id)
@@ -113,6 +124,8 @@ class GameMap:
                 continue
             for p in r.interception_points:
                 if (p[0] < cur_time):
+                    continue
+                if (p[0] >= cur_time + self.max_time):
                     continue
                 dict_key = (p[0]%self.max_time, ang2coord(p[1]))
                 del self.game_dict[dict_key][id]
@@ -126,6 +139,8 @@ class GameMap:
             self.color_dict[id] = self.get_color(id, r.city_hit)
             for p in r.interception_points:
                 if (p[0] <= cur_time):
+                    continue
+                if (p[0] >= cur_time + self.max_time):
                     continue
                 dict_key = (p[0] % self.max_time, ang2coord(p[1]))
                 self.game_dict[dict_key][id] = p[2]

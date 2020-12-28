@@ -119,11 +119,11 @@ class MyInterceptor:
 
         if (len(r_locs) > 0):
             x1, y1 = r_locs[-1]
-        if (len(r_locs) > 0) and (self.is_new_rocket(x1, y1)):
-            rocket = MyRocket(*r_locs[-1], t, c_locs, self.intr_paths_mat)
-            self.rockets_list.append(rocket)
-            self.t_no_new_rocket = 0
-            self.new_rockets.append(rocket.id)
+            if (self.is_new_rocket(x1, y1)):
+                rocket = MyRocket(*r_locs[-1], t, c_locs, self.intr_paths_mat)
+                self.rockets_list.append(rocket)
+                self.t_no_new_rocket = 0
+                self.new_rockets.append(rocket.id)
 
         cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, self.new_rockets, self.removed_rockets, ang)
         compare = False#True#
@@ -155,11 +155,11 @@ class MyInterceptor:
             elif self.strategy[1] < ang:
                 action = LEFT
             elif self.strategy[0] == t:
-                action = SHOOT
-                self.strategy = None
-                self.removed_rockets.append(self.rockets_list[0].id)
-                self.rockets_list.remove(self.rockets_list[0])
-
+                #action = SHOOT
+                #self.strategy = None
+                #self.removed_rockets.append(self.rockets_list[0].id)
+                #self.rockets_list.remove(self.rockets_list[0])
+                action = STRAIGHT
             else:
                 action = STRAIGHT
 
@@ -168,7 +168,7 @@ class MyInterceptor:
             if r.path[-1][2] < t:
                 self.removed_rockets.append(r.id)
                 self.rockets_list.remove(r)
-        return action, cur_game_map1
+        return action, cur_game_map1, 0
 
     def calc_score(self, action, game_map, ang):
         #TODO: calc real scores
@@ -202,5 +202,5 @@ def my_main():
 import cProfile
 
 if __name__ == '__main__':
-    cProfile.run('my_main()')
-    #my_main()
+    #cProfile.run('my_main()')
+    my_main()
