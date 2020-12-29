@@ -170,13 +170,13 @@ class MyInterceptor:
                 self.rockets_list.remove(r)
         return action, cur_game_map1, 0
 
-    def calc_score(self, action, game_map, ang):
+    def calc_score(self, action, cur_game_map, ang):
         #TODO: calc real scores
         self.my_score = 0
         if action == SHOOT:
-            if game_map[0, game_map.ang2coord(ang), :].max() > 32: ## a city rocket
+            if cur_game_map[1, game_map.ang2coord(ang), :].max() > 32: ## a city rocket
                 self.my_score = 14
-            elif game_map[0, game_map.ang2coord(ang), :].max() > 0: ## a field rocket
+            elif cur_game_map[1, game_map.ang2coord(ang), :].max() > 0: ## a field rocket
                 self.my_score = 4
             else:
                 self.my_score = 0
