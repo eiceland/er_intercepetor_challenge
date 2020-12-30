@@ -13,6 +13,7 @@ class InterceptorEnv(gym.Env):
         Interceptor_V2.Init()
         self.my_intr = MyInterceptor()
         self.stp = 0
+        self.max_steps = 1000
         self.r_locs = []
         self.i_locs = []
         self.c_locs = []
@@ -40,9 +41,13 @@ class InterceptorEnv(gym.Env):
         self.state = game_map
         reward = self.my_score
 
-        self.done = False
-        info = []
+
         self.stp += 1
+        if self.stp >= self.max_steps:
+            self.done = True
+        else:
+            self.done = False
+        info = []
         info = {"episode" : None, "is_success" : None}
         return self.state, reward, self.done, info
 
