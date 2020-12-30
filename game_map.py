@@ -9,7 +9,9 @@ FIELD_COLORS = np.ceil(np.asarray(CITY_COLORS)/16).astype("uint8")
 
 
 def ang2coord(ang):
-    return (np.floor(ang + 90) / 6).astype(int)
+    res = (np.floor(ang + 90) / 6).astype(int)
+    # print("ang: " + str(ang) + " to " + str(res))
+    return res
 
 
 def build_game_map(rockets_list, cur_ang, cur_time):
@@ -63,6 +65,7 @@ def build_game_map(rockets_list, cur_ang, cur_time):
         a=1
 
     game_map[0, :, :] = 0
+    print("actor location: " + str(ang2coord(cur_ang)))
     game_map[0, ang2coord(cur_ang), :] = GREEN
 
     if disp:
@@ -150,6 +153,7 @@ class GameMap:
                 self.game_map[p[0] - cur_time, ang2coord(p[1])] = self.color_dict[min_id]
 
         self.game_map[0, :, :] = 0
+        print("actor location: " + str(ang2coord(cur_ang)))
         self.game_map[0, ang2coord(cur_ang), :] = GREEN
         return self.game_map
 

@@ -34,13 +34,12 @@ class InterceptorEnv(gym.Env):
         if self.stp % 100 == 0:
             print("step", self.stp, "score", self.score, "rockets", len(self.r_locs))
 
+        self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score = Interceptor_V2.Game_step(action)
         _, game_map, _ = self.my_intr.calculate_map_and_score(self.r_locs, self.i_locs, self.c_locs, self.ang, self.score, self.stp)
         self.my_score = self.my_intr.calc_score(action, game_map, self.ang)
-        self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score = Interceptor_V2.Game_step(action)
 
         self.state = game_map
         reward = self.my_score
-
 
         self.stp += 1
         if self.stp >= self.max_steps:
@@ -55,9 +54,21 @@ class InterceptorEnv(gym.Env):
         result = []
         return result
 
-    def render(self, mode):
-        res_map = []
-        return res_map
+    def render(self, mode='rgb_array'):
+        if mode == 'human':
+            game_map = self.state
+            im = game_map.astype("uint8")
+            max_time = 400
+            angs_options = 31
+            im = cv.resize(im, (angs_options * 40, max_time * 3), interpolation=cv.INTER_NEAREST)
+            im = 255 - im
+            im = im.astype("uint8")
+            im = np.vstack((cv.resize(im[:1, :], (angs_options * 40, 10)), im))
+            im = im[::-1]
+            im = 255-im
+            return im
+        elif mode == 'rgb_array':
+            return self.state
 
     def close(self):
         return None
