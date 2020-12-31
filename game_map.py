@@ -19,9 +19,9 @@ def build_game_map(rockets_list, cur_ang, cur_time):
     max_time = 400
     max_range = 10000
     angs_options = 31
-    game_map = np.zeros((max_time, angs_options, 3))
+    game_map = np.zeros((max_time+1, angs_options, 3))
     inter_ranges_map = np.zeros((max_time, angs_options)) + max_range
-    inter_ranges_map[0, ang2coord(cur_ang)] = 0
+    #inter_ranges_map[0, ang2coord(cur_ang)] = 0
     temp_game_map = np.zeros((max_time, angs_options))
     temp_inter_ranges_map = np.zeros((max_time, angs_options))
 
@@ -45,7 +45,7 @@ def build_game_map(rockets_list, cur_ang, cur_time):
 
         ##remove past times:
         t_and_ang[:, 0] -= cur_time
-        t_and_ang = t_and_ang[t_and_ang[:, 0] > 0]
+        t_and_ang = t_and_ang[t_and_ang[:, 0] >= 0]
         t_and_ang = t_and_ang[t_and_ang[:, 0] < max_time]
 
         ##build temp maps for current track:
@@ -60,7 +60,7 @@ def build_game_map(rockets_list, cur_ang, cur_time):
         for i in range(3):
             game_map_i = game_map[:, :, i]
             # game_map_i[chosen] = temp_game_map[chosen] * COLOR[i]
-            game_map_i[tuple(chosen)] = temp_game_map[tuple(chosen)] * COLOR[i]
+            game_map_i[1:][tuple(chosen)] = temp_game_map[tuple(chosen)] * COLOR[i]
             game_map[:, :, i] = game_map_i
         a=1
 
@@ -85,10 +85,10 @@ class GameMap:
         self.max_time = 400
         self.max_range = 10000
         self.angs_options = 31
-        self.game_map = np.zeros((self.max_time, self.angs_options, 3))
+        self.game_map = np.zeros((self.max_time+1, self.angs_options, 3))
         self.game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
         self.color_dict = {'empty':[0,0,0]}
-        self.old_game_map = np.zeros((self.max_time, self.angs_options, 3))
+        self.old_game_map = np.zeros((self.max_time+1, self.angs_options, 3))
         self.old_game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
 
     def revert(self):
@@ -118,30 +118,13 @@ class GameMap:
         self.game_map[-1] = self.color_dict['empty']
 
         for a in range(self.angs_options):
-            self.game_dict[(cur_time%self.max_time,a)] = {}
+            self.game_dict[((cur_time-1)%self.max_time,a)] = {}
 
-        for id in removed_rockets:
-            # print("removing", id)
-            r = self.get_rocket_by_id(rockets_list, id)
-            if r is None: # happens if there are no interception points.
-                continue
-            for p in r.interception_points:
-                if (p[0] < cur_time):
-                    continue
-                if (p[0] >= cur_time + self.max_time):
-                    continue
-                dict_key = (p[0]%self.max_time, ang2coord(p[1]))
-                del self.game_dict[dict_key][id]
-                if len(self.self.game_dict[dict_key]) == 0:
-                    val = 0
-                else:
-                    val = min(self.game_dict[dict_key], key = lambda k : self.game_dict[k] )
-                self.game_map[p(0) - cur_time, ang2coord(p[1])] = val
         for id in new_rockets:
             r = self.get_rocket_by_id(rockets_list, id)
             self.color_dict[id] = self.get_color(id, r.city_hit)
             for p in r.interception_points:
-                if (p[0] <= cur_time):
+                if (p[0] < cur_time):
                     continue
                 if (p[0] >= cur_time + self.max_time):
                     continue
@@ -149,13 +132,16 @@ class GameMap:
                 self.game_dict[dict_key][id] = p[2]
                 cur_dict = self.game_dict[dict_key]
                 min_id = min(cur_dict, key=lambda k: cur_dict[k])
-               # min_id = min(self.game_dict[dict_key], key=lambda k: self.game_dict[k])
-                self.game_map[p[0] - cur_time, ang2coord(p[1])] = self.color_dict[min_id]
+                #game map: line 0 - the actor, line 1 - rocket to hit if I shoot now.
+                self.game_map[p[0] - cur_time +1, ang2coord(p[1])] = self.color_dict[min_id]
 
         self.game_map[0, :, :] = 0
         print("actor location: " + str(ang2coord(cur_ang)))
         self.game_map[0, ang2coord(cur_ang), :] = GREEN
         return self.game_map
+
+    def delete_rockets_path_after_shoot(self):
+        return
 
 
 
