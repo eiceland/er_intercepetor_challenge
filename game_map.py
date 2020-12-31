@@ -90,6 +90,7 @@ class GameMap:
         self.color_dict = {'empty':[0,0,0]}
         self.old_game_map = np.zeros((self.max_time+1, self.angs_options, 3))
         self.old_game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
+        self.time = 0
 
     def revert(self):
         self.game_map = self.old_game_map.copy()
@@ -112,8 +113,9 @@ class GameMap:
             COLOR = FIELD_COLORS[id % len(FIELD_COLORS)]
         return COLOR
 
-    def update_map(self, cur_time, rockets_list, new_rockets, removed_rockets, cur_ang):
-        self.update_old()
+    def update_map(self, cur_time, rockets_list, new_rockets, cur_ang):
+        self.time = cur_time
+      #  self.update_old()
         self.game_map[:-1] = self.game_map[1:]
         self.game_map[-1] = self.color_dict['empty']
 
@@ -136,12 +138,38 @@ class GameMap:
                 self.game_map[p[0] - cur_time +1, ang2coord(p[1])] = self.color_dict[min_id]
 
         self.game_map[0, :, :] = 0
-        print("actor location: " + str(ang2coord(cur_ang)))
+       # print("actor location: " + str(ang2coord(cur_ang)))
         self.game_map[0, ang2coord(cur_ang), :] = GREEN
         return self.game_map
 
-    def delete_rockets_path_after_shoot(self):
-        return
+    def delete_rockets_path_after_shoot(self, rockets_list):
+        agent_loc = np.nonzero(self.game_map[0])[0][0]
+        dict_key = (self.time % self.max_time, agent_loc)
+        cur_dict = self.game_dict[dict_key]
+        if (len(cur_dict) == 0):
+            return []
+        min_id = min(cur_dict, key=lambda k: cur_dict[k])
+        rockets_to_remove = []
+        for id in cur_dict:
+            if cur_dict[id] == cur_dict[min_id]:
+                rockets_to_remove.append(id)
+        for id in rockets_to_remove:
+            r = self.get_rocket_by_id(rockets_list, id)
+            for p in r.interception_points:
+                if (p[0] < self.time):
+                    continue
+                if (p[0] >= self.time + self.max_time):
+                    continue
+                dict_key = (p[0] % self.max_time, ang2coord(p[1]))
+                del self.game_dict[dict_key][id]
+                cur_dict = self.game_dict[dict_key]
+                if len(cur_dict) == 0:
+                    self.game_map[p[0] - self.time + 1, ang2coord(p[1])] = self.color_dict['empty']
+                else:
+                    min_id = min(cur_dict, key=lambda k: cur_dict[k])
+                    self.game_map[p[0] - self.time + 1, ang2coord(p[1])] = self.color_dict[min_id]
+
+        return rockets_to_remove
 
 
 

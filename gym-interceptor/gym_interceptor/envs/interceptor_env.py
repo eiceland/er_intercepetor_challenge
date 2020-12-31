@@ -12,42 +12,59 @@ class InterceptorEnv(gym.Env):
     def __init__(self):
         Interceptor_V2.Init()
         self.my_intr = MyInterceptor()
-        self.stp = 0
         self.max_steps = 1000
+        self.stp = 0
         self.r_locs = []
         self.i_locs = []
         self.c_locs = []
         self.ang = 0
         self.game_score = 0
         self.my_score = 0
-        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(400, 31, 3))
+        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(401, 31, 3))
         self.action_space = gym.spaces.Discrete(4)
-        self.state = []
-        self.score = 0
+        self.state = None
         self.done = False
 
     def reset(self):
-        self.state = np.zeros(self.observation_space.shape)
+        self.stp = 0
+        self.r_locs = []
+        self.i_locs = []
+        self.c_locs = []
+        self.ang = 0
+        self.game_score = 0
+        self.my_score = 0
+
+        self.my_intr.__init__()
+        self.state = self.my_intr.calculate_map(self.r_locs, self.i_locs, self.c_locs, self.ang, self.stp)
         return self.state
 
     def step(self, action):
-        if self.stp % 100 == 0:
-            print("step", self.stp, "score", self.score, "rockets", len(self.r_locs))
 
-        self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score = Interceptor_V2.Game_step(action)
-        _, game_map, _ = self.my_intr.calculate_map_and_score(self.r_locs, self.i_locs, self.c_locs, self.ang, self.score, self.stp)
-        self.my_score = self.my_intr.calc_score(action, game_map, self.ang)
+        if action == self.my_intr.SHOOT:
+            # Here we delete the interception points from the game map
+            reward = self.my_intr.shoot()
+        else:
+            reward = 0
+        self.my_score += reward
+
+        if self.stp % 100 == 0:
+            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs))
+        self.stp += 1
+        #next round: see what's new in the world
+        self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score  = Interceptor_V2.Game_step(action)
+        #now calcluate the game map for the next round
+        game_map = self.my_intr.calculate_map(self.r_locs, self.i_locs, self.c_locs, self.ang, self.stp)
 
         self.state = game_map
-        reward = self.my_score
-
-        self.stp += 1
         if self.stp >= self.max_steps:
             self.done = True
+            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
+                  "game score", self.game_score)
         else:
             self.done = False
-        info = []
+        #info = []
         info = {"episode" : None, "is_success" : None}
+
         return self.state, reward, self.done, info
 
     def seed(self, s):

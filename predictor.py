@@ -5,11 +5,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 
-##Enums:
-LEFT = 0
-STRAIGHT = 1
-RIGHT = 2
-SHOOT = 3
+
 
 
 class MyRocket:
@@ -67,6 +63,12 @@ class MyRocket:
 
 
 class MyInterceptor:
+    ##Enums:
+    LEFT = 0
+    STRAIGHT = 1
+    RIGHT = 2
+    SHOOT = 3
+
     def __init__(self):
         self.rockets_list = []
         self.strategy = None
@@ -74,8 +76,8 @@ class MyInterceptor:
         self.t_no_new_rocket = 0
         self.intr_paths_mat = self.get_interceprtion_mat()
         self.game_map = game_map.GameMap()
-        self.new_rockets = []
-        self.removed_rockets = []
+        self.shoot_interval = 7
+        self.last_shoot_time = -self.shoot_interval
 
     def get_interceptor_path(self, ang0, v0=800, x0=-2000.0, y0=0.0, world_width=10000, fric=5e-7, dt=0.2, g=9.8):
         max_path_len = 353
@@ -112,10 +114,10 @@ class MyInterceptor:
                 return False
         return True
 
-    def calculate_map_and_score(self, r_locs, i_locs, c_locs, ang, score, t):
+    def calculate_map(self, r_locs, i_locs, c_locs, ang, t):
         self.time = t
         self.t_no_new_rocket += 1
-        self.new_rockets = []
+        new_rockets = []
 
         if (len(r_locs) > 0):
             x1, y1 = r_locs[-1]
@@ -123,9 +125,30 @@ class MyInterceptor:
                 rocket = MyRocket(*r_locs[-1], t, c_locs, self.intr_paths_mat)
                 self.rockets_list.append(rocket)
                 self.t_no_new_rocket = 0
-                self.new_rockets.append(rocket.id)
+                new_rockets.append(rocket.id)
+        cur_game_map = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang)
 
-        cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, self.new_rockets, self.removed_rockets, ang)
+        for r in self.rockets_list:
+            if r.path[-1][2] < t:
+                self.rockets_list.remove(r)
+        return cur_game_map
+
+
+    def calculate_map_score_action(self, r_locs, i_locs, c_locs, ang, score, t):
+        self.time = t
+        self.t_no_new_rocket += 1
+        new_rockets = []
+        score = 0
+
+        if (len(r_locs) > 0):
+            x1, y1 = r_locs[-1]
+            if (self.is_new_rocket(x1, y1)):
+                rocket = MyRocket(*r_locs[-1], t, c_locs, self.intr_paths_mat)
+                self.rockets_list.append(rocket)
+                self.t_no_new_rocket = 0
+                new_rockets.append(rocket.id)
+
+        cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang)
         compare = False#True#
         if compare:
             cur_game_map = game_map.build_game_map(self.rockets_list, ang, self.time)  ##Rafi
@@ -135,7 +158,6 @@ class MyInterceptor:
             else:
                 print("assertion pass")
 
-        self.removed_rockets = []
         if (self.strategy is None) and (len(self.rockets_list) > 0):
             rocket_to_hit = self.rockets_list[0]
             for p in rocket_to_hit.interception_points:
@@ -146,34 +168,52 @@ class MyInterceptor:
 
         if self.strategy is None:
             if (ang > 45):
-                action =  RIGHT
+                action =  self.RIGHT
             else:
-                action = LEFT
+                action = self.LEFT
         else:
             if self.strategy[1] > ang:
-                action = RIGHT
+                action = self.RIGHT
             elif self.strategy[1] < ang:
-                action = LEFT
+                action = self.LEFT
             elif self.strategy[0] == t:
-                #action = SHOOT
-                #self.strategy = None
-                #self.removed_rockets.append(self.rockets_list[0].id)
-                #self.rockets_list.remove(self.rockets_list[0])
-                action = STRAIGHT
+                action = self.SHOOT
+                self.shoot()
+                self.strategy = None
             else:
-                action = STRAIGHT
+                action = self.STRAIGHT
 
         # remove rockets that landed
         for r in self.rockets_list:
             if r.path[-1][2] < t:
-                self.removed_rockets.append(r.id)
                 self.rockets_list.remove(r)
-        return action, cur_game_map1, 0
+        return action, cur_game_map1, score
+
+    def shoot(self):
+        score = 0
+        if self.time - self.last_shoot_time < self.shoot_interval:
+            return score
+        self.last_shoot_time = self.time
+        removed_rockets = self.game_map.delete_rockets_path_after_shoot(self.rockets_list)
+        for id in removed_rockets:
+            score += self.remove_rocket_from_list_and_get_score(id)
+        return score
+
+
+    def remove_rocket_from_list_and_get_score(self, id):
+        r_to_remove = None
+        for r in self.rockets_list:
+            if r.id == id:
+                r_to_remove = r
+        score = 14 if r_to_remove.city_hit else 4
+        self.rockets_list.remove(r_to_remove)
+        return score
+
 
     def calc_score(self, action, cur_game_map, ang):
         #TODO: calc real scores
         self.my_score = 0
-        if action == SHOOT:
+        if action == self.SHOOT:
             if cur_game_map[1, game_map.ang2coord(ang), :].max() > 32: ## a city rocket
                 self.my_score = 14
             elif cur_game_map[1, game_map.ang2coord(ang), :].max() > 0: ## a field rocket
@@ -193,7 +233,7 @@ def my_main():
     for stp in range(1000):
         if stp % 100 == 0:
             print("step", stp, "score", score, "rockets", len(r_locs))
-        action_button, game_map, my_score = my_intr.calculate_map_and_score(r_locs, i_locs, c_locs, ang, score, stp)
+        action_button, game_map, my_score = my_intr.calculate_map_score_action(r_locs, i_locs, c_locs, ang, score, stp)
         r_locs, i_locs, c_locs, ang, score = Game_step(action_button)
     # Draw()
     print(score)
