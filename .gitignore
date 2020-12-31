@@ -7,6 +7,7 @@
 **/.idea/*
 /log/
 *.zip 
+/venv/*
 
 #Ignore thumbnails created by Windows
 Thumbs.db
