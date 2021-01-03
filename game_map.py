@@ -68,15 +68,6 @@ def build_game_map(rockets_list, cur_ang, cur_time):
     print("actor location: " + str(ang2coord(cur_ang)))
     game_map[0, ang2coord(cur_ang), :] = GREEN
 
-    if disp:
-        im = game_map.astype("uint8")
-        im = cv.resize(im, (angs_options*40, max_time*3), interpolation=cv.INTER_NEAREST)
-        im = 255 - im
-        im = im.astype("uint8")
-        im = np.vstack((cv.resize(im[:1, :], (angs_options*40, 10)), im))
-        plt.imshow(im)
-        plt.title("time: " + str(cur_time) + " rockets: " + str(len(rockets_list)))
-        plt.pause(0.0001)
     return game_map
 
 import copy
@@ -86,20 +77,10 @@ class GameMap:
         self.max_range = 10000
         self.angs_options = 31
         self.game_map = np.zeros((self.max_time+1, self.angs_options, 3))
-        self.game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
-        self.color_dict = {'empty':[0,0,0]}
-        self.old_game_map = np.zeros((self.max_time+1, self.angs_options, 3))
-        self.old_game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
+        self.game_dict = {(t, a): {} for t in range(self.max_time) for a in range(self.angs_options)}
+        self.color_dict = {'empty':[0, 0, 0]}
         self.time = 0
         self.shoot_interval = shoot_interval
-
-    def revert(self):
-        self.game_map = self.old_game_map.copy()
-        self.game_dict = copy.deepcopy(self.old_game_dict)
-
-    def update_old(self):
-        self.old_game_map = self.game_map.copy()
-        self.old_game_dict = copy.deepcopy(self.game_dict)
 
     def get_rocket_by_id(self, rockets_list, id):
         for r in rockets_list:
@@ -174,8 +155,6 @@ class GameMap:
                     self.game_map[p[0] - self.time + 1, ang2coord(p[1])] = self.color_dict[min_id]
 
         return rockets_to_remove
-
-
 
 
 def main():
