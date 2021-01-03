@@ -81,7 +81,7 @@ def build_game_map(rockets_list, cur_ang, cur_time):
 
 import copy
 class GameMap:
-    def __init__(self):
+    def __init__(self, shoot_interval):
         self.max_time = 400
         self.max_range = 10000
         self.angs_options = 31
@@ -91,6 +91,7 @@ class GameMap:
         self.old_game_map = np.zeros((self.max_time+1, self.angs_options, 3))
         self.old_game_dict = {(t,a):{} for t in range(self.max_time) for a in range(self.angs_options)}
         self.time = 0
+        self.shoot_interval = shoot_interval
 
     def revert(self):
         self.game_map = self.old_game_map.copy()
@@ -99,7 +100,6 @@ class GameMap:
     def update_old(self):
         self.old_game_map = self.game_map.copy()
         self.old_game_dict = copy.deepcopy(self.game_dict)
-
 
     def get_rocket_by_id(self, rockets_list, id):
         for r in rockets_list:
@@ -113,14 +113,13 @@ class GameMap:
             COLOR = FIELD_COLORS[id % len(FIELD_COLORS)]
         return COLOR
 
-    def update_map(self, cur_time, rockets_list, new_rockets, cur_ang):
+    def update_map(self, cur_time, rockets_list, new_rockets, cur_ang, time_since_shoot):
         self.time = cur_time
-      #  self.update_old()
         self.game_map[:-1] = self.game_map[1:]
         self.game_map[-1] = self.color_dict['empty']
 
         for a in range(self.angs_options):
-            self.game_dict[((cur_time-1)%self.max_time,a)] = {}
+            self.game_dict[((cur_time-1) % self.max_time, a)] = {}
 
         for id in new_rockets:
             r = self.get_rocket_by_id(rockets_list, id)
@@ -134,11 +133,16 @@ class GameMap:
                 self.game_dict[dict_key][id] = p[2]
                 cur_dict = self.game_dict[dict_key]
                 min_id = min(cur_dict, key=lambda k: cur_dict[k])
-                #game map: line 0 - the actor, line 1 - rocket to hit if I shoot now.
-                self.game_map[p[0] - cur_time +1, ang2coord(p[1])] = self.color_dict[min_id]
+                ## game map: line 0 - the actor, line 1 - rocket to hit if I shoot now.
+                self.game_map[p[0] - cur_time + 1, ang2coord(p[1])] = self.color_dict[min_id]
 
+        ## black non-shooting rows:
+        if time_since_shoot < self.shoot_interval:
+            time_to_shoot_option = self.shoot_interval - time_since_shoot
+            self.game_map[:time_to_shoot_option+1, :, :] = 0
+
+        ## add player:
         self.game_map[0, :, :] = 0
-       # print("actor location: " + str(ang2coord(cur_ang)))
         self.game_map[0, ang2coord(cur_ang), :] = GREEN
         return self.game_map
 

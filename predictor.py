@@ -75,8 +75,8 @@ class MyInterceptor:
         self.time = 0
         self.t_no_new_rocket = 0
         self.intr_paths_mat = self.get_interceprtion_mat()
-        self.game_map = game_map.GameMap()
-        self.shoot_interval = 7
+        self.shoot_interval = 8
+        self.game_map = game_map.GameMap(self.shoot_interval)
         self.last_shoot_time = -self.shoot_interval
 
     def get_interceptor_path(self, ang0, v0=800, x0=-2000.0, y0=0.0, world_width=10000, fric=5e-7, dt=0.2, g=9.8):
@@ -114,7 +114,7 @@ class MyInterceptor:
                 return False
         return True
 
-    def calculate_map(self, r_locs, i_locs, c_locs, ang, t):
+    def calculate_map(self, r_locs, c_locs, ang, t):
         self.time = t
         self.t_no_new_rocket += 1
         new_rockets = []
@@ -126,68 +126,14 @@ class MyInterceptor:
                 self.rockets_list.append(rocket)
                 self.t_no_new_rocket = 0
                 new_rockets.append(rocket.id)
-        cur_game_map = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang)
+
+        time_since_shoot = self.time - self.last_shoot_time
+        cur_game_map = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang, time_since_shoot)
 
         for r in self.rockets_list:
             if r.path[-1][2] < t:
                 self.rockets_list.remove(r)
         return cur_game_map
-
-
-    def calculate_map_score_action(self, r_locs, i_locs, c_locs, ang, score, t):
-        self.time = t
-        self.t_no_new_rocket += 1
-        new_rockets = []
-        score = 0
-
-        if (len(r_locs) > 0):
-            x1, y1 = r_locs[-1]
-            if (self.is_new_rocket(x1, y1)):
-                rocket = MyRocket(*r_locs[-1], t, c_locs, self.intr_paths_mat)
-                self.rockets_list.append(rocket)
-                self.t_no_new_rocket = 0
-                new_rockets.append(rocket.id)
-
-        cur_game_map1 = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang)
-        compare = False#True#
-        if compare:
-            cur_game_map = game_map.build_game_map(self.rockets_list, ang, self.time)  ##Rafi
-            if not (cur_game_map == cur_game_map1).all():
-                plt.imshow(np.hstack((cur_game_map, 255*np.ones((cur_game_map.shape[0], 1, 3)), cur_game_map1, 255*np.ones((cur_game_map.shape[0], 1, 3)), np.abs(cur_game_map1-cur_game_map))))
-                plt.show()
-            else:
-                print("assertion pass")
-
-        if (self.strategy is None) and (len(self.rockets_list) > 0):
-            rocket_to_hit = self.rockets_list[0]
-            for p in rocket_to_hit.interception_points:
-                self.strategy = p
-                if ((p[0] - t) * 6 > np.abs(p[1] - ang)):  # p[0] absolute shooting time. p[1] angle to shoot
-                    break
-                self.strategy = None
-
-        if self.strategy is None:
-            if (ang > 45):
-                action =  self.RIGHT
-            else:
-                action = self.LEFT
-        else:
-            if self.strategy[1] > ang:
-                action = self.RIGHT
-            elif self.strategy[1] < ang:
-                action = self.LEFT
-            elif self.strategy[0] == t:
-                action = self.SHOOT
-                self.shoot()
-                self.strategy = None
-            else:
-                action = self.STRAIGHT
-
-        # remove rockets that landed
-        for r in self.rockets_list:
-            if r.path[-1][2] < t:
-                self.rockets_list.remove(r)
-        return action, cur_game_map1, score
 
     def shoot(self):
         score = 0
@@ -199,7 +145,6 @@ class MyInterceptor:
             score += self.remove_rocket_from_list_and_get_score(id)
         return score
 
-
     def remove_rocket_from_list_and_get_score(self, id):
         r_to_remove = None
         for r in self.rockets_list:
@@ -208,7 +153,6 @@ class MyInterceptor:
         score = 14 if r_to_remove.city_hit else 4
         self.rockets_list.remove(r_to_remove)
         return score
-
 
     def calc_score(self, action, cur_game_map, ang):
         #TODO: calc real scores
@@ -223,24 +167,3 @@ class MyInterceptor:
 
         #TODO: what about double-interceptions? Do they get double-score?
         return self.my_score
-
-
-def my_main():
-    Init()
-    my_intr = MyInterceptor()
-    r_locs = i_locs = c_locs = []
-    ang = score = 0
-    for stp in range(1000):
-        if stp % 100 == 0:
-            print("step", stp, "score", score, "rockets", len(r_locs))
-        action_button, game_map, my_score = my_intr.calculate_map_score_action(r_locs, i_locs, c_locs, ang, score, stp)
-        r_locs, i_locs, c_locs, ang, score = Game_step(action_button)
-    # Draw()
-    print(score)
-
-
-import cProfile
-
-if __name__ == '__main__':
-    #cProfile.run('my_main()')
-    my_main()

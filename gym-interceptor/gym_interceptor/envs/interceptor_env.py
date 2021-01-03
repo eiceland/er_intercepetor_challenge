@@ -35,7 +35,7 @@ class InterceptorEnv(gym.Env):
         self.my_score = 0
 
         self.my_intr.__init__()
-        self.state = self.my_intr.calculate_map(self.r_locs, self.i_locs, self.c_locs, self.ang, self.stp)
+        self.state = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
         return self.state
 
     def step(self, action):
@@ -53,7 +53,7 @@ class InterceptorEnv(gym.Env):
         #next round: see what's new in the world
         self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score  = Interceptor_V2.Game_step(action)
         #now calcluate the game map for the next round
-        game_map = self.my_intr.calculate_map(self.r_locs, self.i_locs, self.c_locs, self.ang, self.stp)
+        game_map = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
 
         self.state = game_map
         if self.stp >= self.max_steps:
@@ -63,7 +63,13 @@ class InterceptorEnv(gym.Env):
         else:
             self.done = False
         #info = []
-        info = {"episode" : None, "is_success" : None}
+        info = {
+            "episode": self.stp,
+            "is_success": True,
+            "rockets": len(self.r_locs),
+            "total score": self.my_score,
+            "game score": self.game_score,
+            "score": reward}
 
         return self.state, reward, self.done, info
 
@@ -75,9 +81,13 @@ class InterceptorEnv(gym.Env):
         if mode == 'human':
             game_map = self.state
             im = game_map.astype("uint8")
-            max_time = 400
-            angs_options = 31
-            im = cv.resize(im, (angs_options * 40, max_time * 3), interpolation=cv.INTER_NEAREST)
+            max_time = im.shape[0]
+            angs_options = im.shape[1]
+            im_up = im[:angs_options, :, :]
+            im_dwn = im[angs_options:, :, :]
+            im_up = cv.resize(im_up, (angs_options * 40, max_time), interpolation=cv.INTER_NEAREST)
+            im_dwn = cv.resize(im_dwn, (angs_options * 40, max_time), interpolation=cv.INTER_NEAREST)
+            im = np.vstack((im_up, im_dwn))
             im = 255 - im
             im = im.astype("uint8")
             im = np.vstack((cv.resize(im[:1, :], (angs_options * 40, 10)), im))
