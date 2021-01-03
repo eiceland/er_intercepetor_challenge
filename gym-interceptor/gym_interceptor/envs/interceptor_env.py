@@ -62,14 +62,14 @@ class InterceptorEnv(gym.Env):
                   "game score", self.game_score)
         else:
             self.done = False
-        #info = []
         info = {
-            "episode": self.stp,
+            "episode": None,
             "is_success": True,
             "rockets": len(self.r_locs),
             "total score": self.my_score,
             "game score": self.game_score,
-            "score": reward}
+            "score": reward
+        }
 
         return self.state, reward, self.done, info
 
