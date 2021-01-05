@@ -1,6 +1,4 @@
 import numpy as np
-import cv2 as cv
-import matplotlib.pyplot as plt
 
 
 GREEN = (0, 255, 0)

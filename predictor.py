@@ -1,11 +1,6 @@
 import numpy as np
-from Interceptor_V2 import Init, Draw, Game_step
 import game_map
 import itertools
-import matplotlib.pyplot as plt
-
-
-
 
 
 class MyRocket:

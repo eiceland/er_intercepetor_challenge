@@ -9,7 +9,7 @@ def run_a2c(env_id='interceptor-v0'):
     model.save(path=r'E:\rafi\code\competition\er_challenge\checkpoints\net')
 
 
-import cProfile
+# import cProfile
 if __name__ == '__main__':
     run_a2c(env_id='interceptor-v0')
     #cProfile.run(r'run_a2c()')

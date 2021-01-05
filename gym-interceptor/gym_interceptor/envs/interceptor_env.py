@@ -1,8 +1,5 @@
 import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
-import os
-import tianshou
 import gym
 import Interceptor_V2
 from predictor import MyInterceptor

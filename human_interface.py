@@ -1,10 +1,5 @@
-import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
-import os
-import gym_interceptor
 import gym
-import keyboard
 
 
 ##Enums:
@@ -33,7 +28,6 @@ def main():
         print("Step: " + str(i) + ", action: " + action_name + ", step reward: " + str(reward) + ", game score: " + str(info["game score"]) + ", rockets: " + str(info["rockets"]) )
         if done:
             break
-
 
 
 if __name__ == '__main__':
