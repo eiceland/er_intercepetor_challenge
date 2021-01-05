@@ -1,4 +1,5 @@
 import cv2 as cv
+import numpy as np
 import gym
 import gym_interceptor
 
@@ -14,7 +15,8 @@ actions_names = {52: 'LEFT', 56: 'STRAIGHT', 53: 'STRAIGHT', 54: 'RIGHT', 48: 'S
 
 def main():
     env = gym.make('interceptor-v0')
-    state = env.reset()
+    env.reset()
+    rewards = []
     for i in range(1000):
         im = env.render('human')
         im = cv.resize(im.astype("uint8"), (int(im.shape[0] / 5), int(im.shape[1] / 5)))
@@ -26,10 +28,11 @@ def main():
             action_name = actions_names[key]
 
         state, reward, done, info = env.step(action)
+        rewards.append(reward)
         print("Step: " + str(i) + ", action: " + action_name + ", step reward: " + str(reward) + ", game score: " + str(info["game score"]) + ", rockets: " + str(info["rockets"]) )
         if done:
             break
-
+    print(np.mean(rewards))
 
 if __name__ == '__main__':
     main()

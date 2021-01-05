@@ -21,6 +21,7 @@ class InterceptorEnv(gym.Env):
         self.action_space = gym.spaces.Discrete(4)
         self.state = None
         self.done = False
+        self.reward_factor = 0.68
 
     def reset(self):
         self.stp = 0
@@ -46,7 +47,7 @@ class InterceptorEnv(gym.Env):
         self.my_score += reward
 
         if self.stp % 100 == 0:
-            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs))
+            print("step", self.stp, "score", reward, "total score", self.my_score, "game score", self.game_score, "rockets", len(self.r_locs))
         self.stp += 1
         #next round: see what's new in the world
         self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score  = Interceptor_V2.Game_step(action)
@@ -68,8 +69,8 @@ class InterceptorEnv(gym.Env):
             "game score": self.game_score,
             "score": reward
         }
-
-        return self.state, reward, self.done, info
+        adjusted_reward = reward * self.reward_factor
+        return self.state, adjusted_reward, self.done, info
 
     def seed(self, s):
         result = []
