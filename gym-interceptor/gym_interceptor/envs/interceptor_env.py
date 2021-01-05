@@ -35,6 +35,7 @@ class InterceptorEnv(gym.Env):
         self.my_score = 0
 
         self.my_intr.__init__()
+        Interceptor_V2.Init()
         self.state = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
         return self.state
 
