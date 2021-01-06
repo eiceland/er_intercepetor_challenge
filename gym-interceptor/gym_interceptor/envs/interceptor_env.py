@@ -22,6 +22,11 @@ class InterceptorEnv(gym.Env):
         self.state = None
         self.done = False
         self.reward_factor = 0.68
+        self.city_rockets =0
+        self.city_hits = 0
+        self.city_inter = 0
+        self.empty_inter = 0
+
 
     def reset(self):
         self.stp = 0
@@ -31,33 +36,44 @@ class InterceptorEnv(gym.Env):
         self.ang = 0
         self.game_score = 0
         self.my_score = 0
+        self.city_rockets =0
+        self.city_hits = 0
+        self.city_inter = 0
+        self.empty_inter = 0
 
         self.my_intr.__init__()
         Interceptor_V2.Init()
-        self.state = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        self.state,_,_ = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
         return self.state
 
     def step(self, action):
-
+        city_inter = 0
+        empty_shoot = False
+        reward = 0
         if action == self.my_intr.SHOOT:
             # Here we delete the interception points from the game map
-            reward = self.my_intr.shoot()
-        else:
-            reward = 0
-        self.my_score += reward
+            reward, city_inter, empty_shoot = self.my_intr.shoot()
+        if empty_shoot:
+            self.empty_inter += 1
 
+        self.my_score += reward
+        self.city_inter += city_inter
         if self.stp % 100 == 0:
-            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs), "game score", self.game_score)
+            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs), "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits, "city interceptions", self.city_inter,"empty shoots", self.empty_inter)
         self.stp += 1
         #next round: see what's new in the world
         self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score  = Interceptor_V2.Game_step(action)
         #now calcluate the game map for the next round
-        game_map = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        game_map, new_city_rocket, n_city_hits = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        self.city_rockets += new_city_rocket
+        self.city_hits += n_city_hits
 
         self.state = game_map
         if self.stp >= self.max_steps:
             self.done = True
-            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs), "game score", self.game_score)
+            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
+                  "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
+                  "city interceptions", self.city_inter, "empty shoots", self.empty_inter)
         else:
             self.done = False
         info = {

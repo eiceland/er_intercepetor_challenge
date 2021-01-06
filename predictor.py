@@ -113,7 +113,7 @@ class MyInterceptor:
         self.time = t
         self.t_no_new_rocket += 1
         new_rockets = []
-
+        new_city_rocket = 0
         if (len(r_locs) > 0):
             x1, y1 = r_locs[-1]
             if (self.is_new_rocket(x1, y1)):
@@ -121,24 +121,28 @@ class MyInterceptor:
                 self.rockets_list.append(rocket)
                 self.t_no_new_rocket = 0
                 new_rockets.append(rocket.id)
+                if rocket.city_hit:
+                    new_city_rocket += 1
 
         time_since_shoot = self.time - self.last_shoot_time
         cur_game_map = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang, time_since_shoot)
-
+        city_hits = 0
         for r in self.rockets_list:
             if r.path[-1][2] < t:
+                if r.city_hit:
+                    city_hits += 1
                 self.rockets_list.remove(r)
-        return cur_game_map
+        return cur_game_map, new_city_rocket, city_hits
 
     def shoot(self):
         score = 0
         if self.time - self.last_shoot_time < self.shoot_interval:
-            return score
+            return score, 0, False
         self.last_shoot_time = self.time
         removed_rockets = self.game_map.delete_rockets_path_after_shoot(self.rockets_list)
         for id in removed_rockets:
             score += self.remove_rocket_from_list_and_get_score(id)
-        return score
+        return score, len(removed_rockets), len(removed_rockets) == 0
 
     def remove_rocket_from_list_and_get_score(self, id):
         r_to_remove = None
