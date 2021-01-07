@@ -74,7 +74,7 @@ class InterceptorEnv(gym.Env):
             self.done = True
             print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
                   "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
-                  "city interceptions", self.city_inter, "empty shoots", self.empty_inter)
+                  "city interceptions", self.city_inter, "empty shoots", self.empty_inter, "\n")
         else:
             self.done = False
         info = {
