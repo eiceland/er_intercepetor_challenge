@@ -60,8 +60,12 @@ class GameMap:
                 self.game_dict[dict_key][id] = p[2]
                 cur_dict = self.game_dict[dict_key]
                 min_id = min(cur_dict, key=lambda k: cur_dict[k])
+                value =0
+                for k in cur_dict:
+                    if cur_dict[k] == cur_dict[min_id]:
+                        value += self.color_dict[k]
                 ## game map: line 0 - the actor, line 1 - rocket to hit if I shoot now.
-                self.game_map[p[0] - cur_time + 1, ang2coord(p[1])] = self.color_dict[min_id]
+                self.game_map[p[0] - cur_time + 1, ang2coord(p[1])] = value % 256
 
         ## zero non-shooting rows:
         if time_since_shoot < self.shoot_interval:

@@ -145,6 +145,8 @@ class MyInterceptor:
             id_score, id_city = self.remove_rocket_from_list_and_get_score(id)
             score += id_score
             city_inter += id_city
+        if score > 14:
+            print("interception of {} points".format(score))
         return score, city_inter, score <= 0
 
     def remove_rocket_from_list_and_get_score(self, id):
