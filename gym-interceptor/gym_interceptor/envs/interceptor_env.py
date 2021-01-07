@@ -98,14 +98,16 @@ class InterceptorEnv(gym.Env):
             im = game_map.astype("uint8")
             max_time = im.shape[0]
             angs_options = im.shape[1]
-            im_up = im[:angs_options, :, :]
-            im_dwn = im[angs_options:, :, :]
-            im_up = cv.resize(im_up, (angs_options * 40, max_time), interpolation=cv.INTER_NEAREST)
-            im_dwn = cv.resize(im_dwn, (angs_options * 40, max_time), interpolation=cv.INTER_NEAREST)
+            interest_zone = 100
+            im_up = im[:interest_zone, :]
+            im_dwn = im[interest_zone:, :]
+            len = 1600#max_time
+            im_up = cv.resize(im_up, (len, angs_options * 40), interpolation=cv.INTER_NEAREST)
+            im_dwn = cv.resize(im_dwn, (len, angs_options * 40), interpolation=cv.INTER_NEAREST)
             im = np.vstack((im_up, im_dwn))
             im = 255 - im
             im = im.astype("uint8")
-            im = np.vstack((cv.resize(im[:1, :], (angs_options * 40, 10)), im))
+            im = np.vstack((cv.resize(im[:1, :], (len, 10)), im))
             im = im[::-1]
             im = 255-im
             return im

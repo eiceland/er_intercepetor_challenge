@@ -2,7 +2,7 @@ from typing import Any, Dict
 import gym
 import gym_interceptor
 from stable_baselines3 import A2C, DQN
-from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 # from torch.utils.tensorboard import SummaryWriter
 from stable_baselines3.common.logger import SummaryWriter
@@ -47,12 +47,18 @@ my_policy_kwargs = dict(
 )
 
 
+
 def run_dlr(env_id='interceptor-v0'):
+    save_freq = 500000
+    checkpoint_path = r'E:\rafi\code\competition\er_challenge\checkpoints'
+    checkpoint_prefix = 'cp_'
+    checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_path, name_prefix=checkpoint_prefix)
+
    # model = A2C("CnnPolicy", env_id, device='cuda', gamma=0.9, tensorboard_log=r".\log\tensorboard\\", seed=0, policy_kwargs=my_policy_kwargs, verbose=1, create_eval_env=True, vf_coef=0.1, learning_rate=0.00005)
-    model = DQN("CnnPolicy", env_id, device='cuda', gamma=0.95, tensorboard_log=r".\log\tensorboard\\", seed=0, policy_kwargs=my_policy_kwargs, verbose=1, create_eval_env=True, learning_rate=0.00005, learning_starts=25000, exploration_final_eps = 0.1, exploration_fraction = 0.25)
+    model = DQN("CnnPolicy", env_id, device='cuda', gamma=0.95, train_freq=1, tensorboard_log=r".\log\tensorboard\\", seed=0, policy_kwargs=my_policy_kwargs, verbose=1, create_eval_env=True, learning_rate=0.00005, learning_starts=25000, exploration_final_eps=0.1, exploration_fraction=0.1)
     score_recorder = ScoreRecorderCallback(gym.make(env_id), render_freq=1)
-    # model.learn(total_timesteps=10000000, eval_freq=0, tb_log_name="first_train",  callback=score_recorder)
-    model.learn(total_timesteps=1000000, eval_freq=0, tb_log_name="first_train")
+    #model.learn(total_timesteps=10000000, eval_freq=0, tb_log_name="first_train",  callback=score_recorder)
+    model.learn(total_timesteps=10000000, eval_freq=0, tb_log_name="first_train", callback=checkpoint_callback)
     model.save(path=r'.\checkpoints\net')
 
 

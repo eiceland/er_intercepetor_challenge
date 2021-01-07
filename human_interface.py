@@ -9,8 +9,10 @@ LEFT = 0
 STRAIGHT = 1
 RIGHT = 2
 SHOOT = 3
-actions = {52: LEFT, 56: STRAIGHT, 53: STRAIGHT, 54: RIGHT, 48: SHOOT}
-actions_names = {52: 'LEFT', 56: 'STRAIGHT', 53: 'STRAIGHT', 54: 'RIGHT', 48: 'SHOOT'}
+QUIT = 4
+
+actions = {52: LEFT, 56: STRAIGHT, 53: STRAIGHT, 54: RIGHT, 48: SHOOT, 113: QUIT}
+actions_names = {52: 'LEFT', 56: 'STRAIGHT', 53: 'STRAIGHT', 54: 'RIGHT', 48: 'SHOOT', 113: "QUIT"}
 
 
 def main():
@@ -26,7 +28,9 @@ def main():
         if key in actions.keys():
             action = actions[key]
             action_name = actions_names[key]
-
+            if action == QUIT:
+                print("GOODBYE!")
+                break
         state, reward, done, info = env.step(action)
         rewards.append(reward)
         print("Step: " + str(i) + ", action: " + action_name + ", step reward: " + str(reward) + ", game score: " + str(info["game score"]) + ", rockets: " + str(info["rockets"]) )
