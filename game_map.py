@@ -1,10 +1,13 @@
 import numpy as np
 
 
-GREEN = (0, 255, 0)
-CITY_COLORS = np.asarray([(0, 0, 255), (255, 0, 0), (0, 128, 128), (128, 0, 128), (128, 128, 0), (0, 0, 64), (0, 64, 0), (64, 0, 0), (0, 64, 64), (64, 0, 64), (64, 64, 0), (0, 0, 32), (0, 32, 0), (32, 0, 0), (0, 32, 32), (32, 0, 32), (32, 32, 0)]).astype("uint8")
-FIELD_COLORS = np.ceil(np.asarray(CITY_COLORS)/16).astype("uint8")
+#GREEN = (0, 255, 0)
+#CITY_COLORS = np.asarray([(0, 0, 255), (255, 0, 0), (0, 128, 128), (128, 0, 128), (128, 128, 0), (0, 0, 64), (0, 64, 0), (64, 0, 0), (0, 64, 64), (64, 0, 64), (64, 64, 0), (0, 0, 32), (0, 32, 0), (32, 0, 0), (0, 32, 32), (32, 0, 32), (32, 32, 0)]).astype("uint8")
+#FIELD_COLORS = np.ceil(np.asarray(CITY_COLORS)/16).astype("uint8")
 
+GREEN = 255
+CITY_COLORS = [50]
+FIELD_COLORS = [20]
 
 def ang2coord(ang):
     res = (np.floor(ang + 90) / 6).astype(int)
@@ -17,9 +20,11 @@ class GameMap:
         self.max_time = 400
         self.max_range = 10000
         self.angs_options = 31
-        self.game_map = np.zeros((self.max_time+1, self.angs_options, 3))
+        self.game_map = np.zeros((self.max_time+1, self.angs_options))
+        #self.game_map = np.zeros((self.max_time+1, self.angs_options, 3))
         self.game_dict = {(t, a): {} for t in range(self.max_time) for a in range(self.angs_options)}
-        self.color_dict = {'empty':[0, 0, 0]}
+        #self.color_dict = {'empty':[0, 0, 0]}
+        self.color_dict = {'empty':0}
         self.time = 0
         self.shoot_interval = shoot_interval
 
@@ -61,15 +66,19 @@ class GameMap:
         ## zero non-shooting rows:
         if time_since_shoot < self.shoot_interval:
             time_to_shoot_option = self.shoot_interval - time_since_shoot
-            self.game_map[:time_to_shoot_option+1, :, :] = 0
+            #self.game_map[:time_to_shoot_option+1, :, :] = 0
+            self.game_map[:time_to_shoot_option+1, :] = 0
 
         ## add player:
-        self.game_map[0, :, :] = 0
-        self.game_map[0, ang2coord(cur_ang), :] = GREEN
+        self.game_map[0, :] = 0
+        #self.game_map[0, :, :] = 0
+        self.game_map[0, ang2coord(cur_ang)] = GREEN
+        #self.game_map[0, ang2coord(cur_ang), :] = GREEN
         return self.game_map
 
     def delete_rockets_path_after_shoot(self, rockets_list):
-        agent_loc = np.nonzero(self.game_map[0])[0][0]
+        agent_loc = int(np.nonzero(self.game_map[0])[0])
+        #agent_loc = np.nonzero(self.game_map[0])[0][0]
         dict_key = (self.time % self.max_time, agent_loc)
         cur_dict = self.game_dict[dict_key]
         if (len(cur_dict) == 0):

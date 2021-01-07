@@ -136,22 +136,26 @@ class MyInterceptor:
 
     def shoot(self):
         score = 0
+        city_inter = 0
         if self.time - self.last_shoot_time < self.shoot_interval:
-            return score, 0, False
+            return -2, 0, False
         self.last_shoot_time = self.time
         removed_rockets = self.game_map.delete_rockets_path_after_shoot(self.rockets_list)
         for id in removed_rockets:
-            score += self.remove_rocket_from_list_and_get_score(id)
-        return score, len(removed_rockets), len(removed_rockets) == 0
+            id_score, id_city = self.remove_rocket_from_list_and_get_score(id)
+            score += id_score
+            city_inter += id_city
+        return score, city_inter, score <= 0
 
     def remove_rocket_from_list_and_get_score(self, id):
         r_to_remove = None
         for r in self.rockets_list:
             if r.id == id:
                 r_to_remove = r
+                break
         score = 14 if r_to_remove.city_hit else 4
         self.rockets_list.remove(r_to_remove)
-        return score
+        return score, 1 if r_to_remove.city_hit else 0
 
     def calc_score(self, action, cur_game_map, ang):
         #TODO: calc real scores
