@@ -114,6 +114,7 @@ class MyInterceptor:
         self.t_no_new_rocket += 1
         new_rockets = []
         new_city_rocket = 0
+        new_f_rocket = 0
         if (len(r_locs) > 0):
             x1, y1 = r_locs[-1]
             if (self.is_new_rocket(x1, y1)):
@@ -123,31 +124,38 @@ class MyInterceptor:
                 new_rockets.append(rocket.id)
                 if rocket.city_hit:
                     new_city_rocket += 1
+                else:
+                    new_f_rocket += 1
 
         time_since_shoot = self.time - self.last_shoot_time
         cur_game_map = self.game_map.update_map(self.time, self.rockets_list, new_rockets, ang, time_since_shoot)
         city_hits = 0
+        f_hits = 0
         for r in self.rockets_list:
             if r.path[-1][2] < t:
                 if r.city_hit:
                     city_hits += 1
+                else:
+                    f_hits += 1
                 self.rockets_list.remove(r)
-        return cur_game_map, new_city_rocket, city_hits
+        return cur_game_map, new_city_rocket, city_hits, new_f_rocket, f_hits
 
     def shoot(self):
         score = 0
         city_inter = 0
+        f_inter = 0
         if self.time - self.last_shoot_time < self.shoot_interval:
-            return -2, 0, False
+            return -1, 0, 0, False
         self.last_shoot_time = self.time
         removed_rockets = self.game_map.delete_rockets_path_after_shoot(self.rockets_list)
         for id in removed_rockets:
             id_score, id_city = self.remove_rocket_from_list_and_get_score(id)
             score += id_score
             city_inter += id_city
-        if score > 14:
+            f_inter += (1 - id_city)
+        if score > 18:
             print("interception of {} points".format(score))
-        return score, city_inter, score <= 0
+        return score, city_inter, f_inter, score <= 0
 
     def remove_rocket_from_list_and_get_score(self, id):
         r_to_remove = None
@@ -155,7 +163,7 @@ class MyInterceptor:
             if r.id == id:
                 r_to_remove = r
                 break
-        score = 14 if r_to_remove.city_hit else 4
+        score = 18 if r_to_remove.city_hit else 4
         self.rockets_list.remove(r_to_remove)
         return score, 1 if r_to_remove.city_hit else 0
 
