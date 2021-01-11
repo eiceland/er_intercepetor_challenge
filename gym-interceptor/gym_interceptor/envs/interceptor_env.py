@@ -27,6 +27,9 @@ class InterceptorEnv(gym.Env):
         self.city_hits = 0
         self.city_inter = 0
         self.empty_inter = 0
+        self.f_rockets = 0
+        self.f_hits = 0
+        self.f_inter = 0
 
 
     def reset(self):
@@ -41,40 +44,51 @@ class InterceptorEnv(gym.Env):
         self.city_hits = 0
         self.city_inter = 0
         self.empty_inter = 0
+        self.f_rockets = 0
+        self.f_hits = 0
+        self.f_inter = 0
 
         self.my_intr.__init__()
         Interceptor_V2.Init()
-        self.state,_,_ = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        self.state,_,_,_,_ = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
         return np.expand_dims(self.state[:100], axis=2)
 
     def step(self, action):
         city_inter = 0
+        f_inter = 0
         reward = 0
         if action == self.my_intr.SHOOT:
             # Here we delete the interception points from the game map
-            reward, city_inter, empty_shoot = self.my_intr.shoot()
+            reward, city_inter, f_inter, empty_shoot = self.my_intr.shoot()
             if empty_shoot:
-                reward -= 2
+                reward -= 1
                 self.empty_inter += 1
 
         self.my_score += reward
         self.city_inter += city_inter
+        self.f_inter += f_inter
         if self.stp % 100 == 0:
-            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs), "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits, "city interceptions", self.city_inter,"empty shoots", self.empty_inter)
+            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
+                  "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
+                  "city interceptions", self.city_inter, "field rockets", self.f_rockets, "field hits", self.f_hits,
+                  "field interceptions", self.f_inter, "empty shoots", self.empty_inter)
         self.stp += 1
         #next round: see what's new in the world
         self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score  = Interceptor_V2.Game_step(action)
         #now calcluate the game map for the next round
-        game_map, new_city_rocket, n_city_hits = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        game_map, new_city_rocket, n_city_hits, new_f_rocket, n_f_hits = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
         self.city_rockets += new_city_rocket
         self.city_hits += n_city_hits
+        self.f_rockets += new_f_rocket
+        self.f_hits += n_f_hits
 
         self.state = game_map
         if self.stp >= self.max_steps:
             self.done = True
             print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
                   "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
-                  "city interceptions", self.city_inter, "empty shoots", self.empty_inter, "\n")
+                  "city interceptions", self.city_inter, "field rockets", self.f_rockets, "field hits", self.f_hits,
+                  "field interceptions", self.f_inter, "empty shoots", self.empty_inter, "\n")
         else:
             self.done = False
         info = {
@@ -83,7 +97,14 @@ class InterceptorEnv(gym.Env):
             "rockets": len(self.r_locs),
             "total score": self.my_score,
             "game score": self.game_score,
-            "score": reward
+            "score": reward,
+            "city rockets": self.city_rockets,
+            "city hits": self.city_hits,
+            "city interceptions": self.city_inter,
+            "field rockets": self.f_rockets,
+            "field hits": self.f_hits,
+            "field interceptions": self.f_inter,
+            "empty shoots": self.empty_inter
         }
         adjusted_reward = reward * self.reward_factor
         return np.expand_dims(self.state[:100], axis=2), adjusted_reward, self.done, info
