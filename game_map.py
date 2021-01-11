@@ -8,6 +8,7 @@ import numpy as np
 GREEN = 255
 CITY_COLORS = [50]
 FIELD_COLORS = [20]
+AIR_COLORS = [15]
 
 def ang2coord(ang):
     res = (np.floor(ang + 90) / 6).astype(int)
@@ -34,11 +35,13 @@ class GameMap:
             if r.id == id:
                 return r
 
-    def get_color(self, id, city_hit):
+    def get_color(self, id, city_hit, no_hit):
         if city_hit:
             COLOR = CITY_COLORS[id % len(CITY_COLORS)]
         else:
             COLOR = FIELD_COLORS[id % len(FIELD_COLORS)]
+        if no_hit:
+            COLOR = AIR_COLORS[id % len(FIELD_COLORS)]
         return COLOR
 
     def update_map(self, cur_time, rockets_list, new_rockets, cur_ang, time_since_shoot):
@@ -51,7 +54,7 @@ class GameMap:
 
         for id in new_rockets:
             r = self.get_rocket_by_id(rockets_list, id)
-            self.color_dict[id] = self.get_color(id, r.city_hit)
+            self.color_dict[id] = self.get_color(id, r.city_hit, r.no_hit)
             for p in r.interception_points:
                 if (p[0] < cur_time):
                     continue

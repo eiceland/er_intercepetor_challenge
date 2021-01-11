@@ -69,7 +69,7 @@ def play():
             player_column += 1
         elif action==SHOOT:
             last_shoot = i
-        print("Step: " + str(i) + ", action: " + action_name + ", step reward: " + str(reward) + ", game score: " + str(info["game score"]) + ", rockets: " + str(info["rockets"]) )
+        #print("Step: " + str(i) + ", action: " + action_name + ", step reward: " + str(reward) + ", game score: " + str(info["game score"]) + ", rockets: " + str(info["rockets"]) )
         if done:
             break
     print(np.mean(rewards))
@@ -77,7 +77,8 @@ def play():
 
 if __name__ == '__main__':
     scores = []
-    for i in range(25):
+    for i in range(250):
+        print ("game", i)
         score = play()
         scores.append(score)
     print(np.mean(scores))
