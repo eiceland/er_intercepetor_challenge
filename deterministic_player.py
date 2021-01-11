@@ -15,18 +15,22 @@ QUIT = 4
 actions = {52: LEFT, 56: STRAIGHT, 53: STRAIGHT, 54: RIGHT, 48: SHOOT, 113: QUIT}
 actions_names = {LEFT: 'LEFT', STRAIGHT: 'STRAIGHT', RIGHT: 'RIGHT', SHOOT: 'SHOOT'}
 
-def play(state, player_column, time_from_shoot):
+def act(state, player_column, time_from_shoot):
     if len(state.shape) > 2:
         state = state[:, :, 0]
     roi = state[1:9, :]
 
     ## make max choose closer and center places:
     fraction_mask = np.zeros_like(roi)
-    if not roi.any():
-        fraction_mask[-1, 20] = 0.5
+    fraction_mask[-1, 20] = 0.1
     for i in range(fraction_mask.shape[0]):
-        fraction_mask[i] += 1-i*0.01
+        fraction_mask[i] = 0.1 - i*0.01
     roi += fraction_mask
+
+    ## remove unreachable areas:
+    # for i in range(fraction_mask.shape[0]):
+    #     roi[i, :player_column-i] = 0
+    #     roi[i, player_column+i+1:] = 0
 
     if time_from_shoot <= 8:
         roi[:8-time_from_shoot, :] = 0
@@ -41,12 +45,13 @@ def play(state, player_column, time_from_shoot):
         else:
             action = STRAIGHT
     #plt.imshow(state[:32, :][::-1])
-    plt.imshow(state[::-1])
-    plt.title(actions_names[action])
-    plt.pause(0.1)
+    # plt.imshow(state[::-1])
+    # plt.title(actions_names[action])
+    # plt.pause(0.001)
     return action
 
-def main():
+
+def play():
     env = gym.make('interceptor-v0')
     env.reset()
     rewards = []
@@ -54,7 +59,7 @@ def main():
     player_column = 15
     last_shoot = -8
     for i in range(1000):
-        action = play(state, player_column, i-last_shoot)
+        action = act(state, player_column, i-last_shoot)
         state, reward, done, info = env.step(action)
         rewards.append(reward)
         action_name = actions_names[action]
@@ -68,6 +73,12 @@ def main():
         if done:
             break
     print(np.mean(rewards))
+    return info["game score"]
 
 if __name__ == '__main__':
-    main()
+    scores = []
+    for i in range(25):
+        score = play()
+        scores.append(score)
+    print(np.mean(scores))
+    a=1
