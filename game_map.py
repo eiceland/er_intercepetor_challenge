@@ -27,6 +27,7 @@ class GameMap:
         self.color_dict = {'empty':0}
         self.time = 0
         self.shoot_interval = shoot_interval
+        self.game_end_time = 1000
 
     def get_rocket_by_id(self, rockets_list, id):
         for r in rockets_list:
@@ -61,10 +62,11 @@ class GameMap:
                 cur_dict = self.game_dict[dict_key]
                 min_id = min(cur_dict, key=lambda k: cur_dict[k])
                 value =0
-                for k in cur_dict:
-                    if cur_dict[k] == cur_dict[min_id]:
-                        value += self.color_dict[k]
-                ## game map: line 0 - the actor, line 1 - rocket to hit if I shoot now.
+                if (cur_dict[min_id] <= self.game_end_time):
+                    for k in cur_dict:
+                        if cur_dict[k] == cur_dict[min_id]:
+                            value += self.color_dict[k]
+                    ## game map: line 0 - the actor, line 1 - rocket to hit if I shoot now.
                 self.game_map[p[0] - cur_time + 1, ang2coord(p[1])] = value % 256
 
         ## zero non-shooting rows:
