@@ -19,6 +19,8 @@ class MyRocket:
         self.shoot_time = cur_time - 2 #r_locs represents the situation in time cur_time-1.
         self.intr_paths_mat = intr_paths_mat
         self.index_2_ang = {i: -90 + 6 * i for i in range(31)}
+        self.hit_time = 0
+        self.end_game_time = 1000
 
         self.update_rocket_path_and_city_hit()
         self.calculate_interception_points()
@@ -40,6 +42,9 @@ class MyRocket:
         for c in self.city_list:
             if np.abs(x - c[0]) < c[1]:  # c[0] = x coordinate of city center, c[1] = distance from city center to the edge
                 self.city_hit = True
+        self.hit_time = self.path[-1][2]
+        if self.hit_time > self.end_game_time:
+            self.city_hit = False
 
     def calculate_interception_points(self, prox_radius=150):
         for t in range(2, len(self.path)): #the first two locations are in the past.
