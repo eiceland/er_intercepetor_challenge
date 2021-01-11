@@ -45,3 +45,7 @@ _ReSharper*/
 #Nuget packages folder
 packages/
 /results/res.txt
+/gym-interceptor/gym_interceptor.egg-info/dependency_links.txt
+/gym-interceptor/gym_interceptor.egg-info/requires.txt
+/gym-interceptor/gym_interceptor.egg-info/SOURCES.txt
+/gym-interceptor/gym_interceptor.egg-info/top_level.txt

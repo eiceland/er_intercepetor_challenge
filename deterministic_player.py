@@ -80,5 +80,5 @@ if __name__ == '__main__':
     for i in range(25):
         score = play()
         scores.append(score)
-    print(np.mean(scores))
+    print(str(np.mean(scores)) +" std: " + str(np.std(scores)) )
     a=1
