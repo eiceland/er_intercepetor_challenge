@@ -8,6 +8,7 @@
 /log/
 *.zip 
 /venv/*
+/venv2/*
 /checkpoints/* 
 /runs/* 
 
@@ -43,3 +44,4 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
+/results/res.txt

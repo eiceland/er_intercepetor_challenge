@@ -173,7 +173,6 @@ class MyInterceptor:
         return score, 1 if r_to_remove.city_hit else 0
 
     def calc_score(self, action, cur_game_map, ang):
-        #TODO: calc real scores
         self.my_score = 0
         if action == self.SHOOT:
             if cur_game_map[1, game_map.ang2coord(ang), :].max() > 32: ## a city rocket
@@ -182,6 +181,4 @@ class MyInterceptor:
                 self.my_score = 4
             else:
                 self.my_score = 0
-
-        #TODO: what about double-interceptions? Do they get double-score?
         return self.my_score
