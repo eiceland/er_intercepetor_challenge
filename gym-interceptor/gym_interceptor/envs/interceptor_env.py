@@ -17,12 +17,11 @@ class InterceptorEnv(gym.Env):
         self.ang = 0
         self.game_score = 0
         self.my_score = 0
-        #self.observation_space = gym.spaces.Box(low=0, high=255, shape=(401, 31, 3))
-        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(100, 31,1), dtype = np.uint8)
+        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(100, 31,3), dtype = np.uint8)
         self.action_space = gym.spaces.Discrete(4)
         self.state = None
         self.done = False
-        self.reward_factor = 1#0.68
+        self.reward_factor = 1
         self.city_rockets =0
         self.city_hits = 0
         self.city_inter = 0
@@ -51,7 +50,7 @@ class InterceptorEnv(gym.Env):
         self.my_intr.__init__()
         Interceptor_V2.Init()
         self.state,_,_,_,_ = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
-        return np.expand_dims(self.state[:100], axis=2)
+        return self.state[:100]
 
     def step(self, action):
         city_inter = 0
@@ -107,7 +106,7 @@ class InterceptorEnv(gym.Env):
             "empty shoots": self.empty_inter
         }
         adjusted_reward = reward * self.reward_factor
-        return np.expand_dims(self.state[:100], axis=2), adjusted_reward, self.done, info
+        return self.state[:100], adjusted_reward, self.done, info
 
     def seed(self, s):
         result = []

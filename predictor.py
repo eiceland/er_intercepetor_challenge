@@ -4,7 +4,7 @@ import itertools
 
 
 class MyRocket:
-    id_iter = itertools.count()
+    id_iter = itertools.count(start=1)
 
     def __init__(self, x1, y1, cur_time, city_list, intr_paths_mat):
         self.id = next(self.id_iter)
