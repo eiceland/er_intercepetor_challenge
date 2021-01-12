@@ -11,7 +11,7 @@
 /venv2/*
 /checkpoints/* 
 /runs/* 
-
+**/res.txt
 
 #Ignore thumbnails created by Windows
 Thumbs.db
