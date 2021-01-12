@@ -9,6 +9,8 @@
 *.zip 
 /venv/*
 /venv2/*
+/venv3.6/*
+/venv3.7/*
 /checkpoints/* 
 /runs/* 
 

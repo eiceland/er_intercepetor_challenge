@@ -15,17 +15,41 @@ QUIT = 4
 actions = {52: LEFT, 56: STRAIGHT, 53: STRAIGHT, 54: RIGHT, 48: SHOOT, 113: QUIT}
 actions_names = {LEFT: 'LEFT', STRAIGHT: 'STRAIGHT', RIGHT: 'RIGHT', SHOOT: 'SHOOT'}
 
+
+class GreedyPlayer:
+    def __init__(self):
+        self.last_shoot = -8
+        self.step = 0
+
+    def act(self, state):
+        player_column = state[0, 0, 0].argmax()
+        action = act(state, player_column, self.step - self.last_shoot)
+        if action == SHOOT:
+            self.last_shoot = self.step
+        self.step += 1
+        return action
+
+    def reset(self):
+        self.player_column = 15
+        self.last_shoot = -8
+        self.step = 0
+
+
 def act(state, player_column, time_from_shoot):
-    if len(state.shape) > 2:
+    disp = False
+    if len(state.shape) == 3:
         state = state[:, :, 0]
+    elif len(state.shape) == 4:
+        state = state[0, 0, :, :]
+
     roi = state[1:9, :]
 
     ## make max choose closer and center places:
-    fraction_mask = np.zeros_like(roi)
+    fraction_mask = np.zeros_like(roi).astype(float)
     fraction_mask[-1, 20] = 0.1
     for i in range(fraction_mask.shape[0]):
         fraction_mask[i] = 0.1 - i*0.01
-    roi += fraction_mask
+    roi = roi + fraction_mask
 
     ## remove unreachable areas:
     # for i in range(fraction_mask.shape[0]):
@@ -44,10 +68,11 @@ def act(state, player_column, time_from_shoot):
             action = SHOOT
         else:
             action = STRAIGHT
-    #plt.imshow(state[:32, :][::-1])
-    # plt.imshow(state[::-1])
-    # plt.title(actions_names[action])
-    # plt.pause(0.001)
+    if disp:
+        #plt.imshow(state[:32, :][::-1])
+        plt.imshow(state[::-1])
+        plt.title(actions_names[action])
+        plt.pause(0.001)
     return action
 
 
