@@ -47,13 +47,19 @@ my_policy_kwargs = dict(
 
 
 def run_dlr(env_id='interceptor-v0', model_path_and_name=r'.\checkpoints\net', lr=0.0002, gamma=0.95):
+    imitataion_learning = False
     save_freq = 100000
     checkpoint_path = os.path.join(os.getcwd(), "checkpoints")
     checkpoint_prefix = 'cp_'
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_path, name_prefix=checkpoint_prefix)
 
-    model = DQN("CnnPolicy", env_id, device='cuda', gamma=gamma, train_freq=1, tensorboard_log=r".\log\tensorboard\\", seed=0, policy_kwargs=my_policy_kwargs, verbose=1, create_eval_env=True, learning_rate=lr, learning_starts=0, exploration_final_eps=0.0, exploration_fraction=0.0)
-    model.learn(total_timesteps=1000000, eval_freq=0, tb_log_name=model_path_and_name[-23:], callback=checkpoint_callback)
+    if imitataion_learning:
+        model = DQN("CnnPolicy", env_id, device='cuda', gamma=gamma, train_freq=1, tensorboard_log=r".\log\tensorboard\\", seed=0, policy_kwargs=my_policy_kwargs, verbose=1, create_eval_env=True, learning_rate=lr, learning_starts=0, exploration_final_eps=0.0, exploration_fraction=0.0)
+        model.learn(total_timesteps=1000000, eval_freq=0, tb_log_name=model_path_and_name[-23:], callback=checkpoint_callback)
+    else:
+        model = DQN("CnnPolicy", env_id, device='cuda', gamma=gamma, train_freq=1, tensorboard_log=r".\log\tensorboard\\", seed=0, policy_kwargs=my_policy_kwargs, verbose=1, create_eval_env=True, learning_rate=lr, learning_starts=25000, exploration_final_eps=0.1, exploration_fraction=0.2)
+        model.learn(total_timesteps=5000000, eval_freq=0, tb_log_name=model_path_and_name[-23:], callback=checkpoint_callback)
+
     model.save(path=model_path_and_name)
 
 
