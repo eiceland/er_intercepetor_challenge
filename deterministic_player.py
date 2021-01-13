@@ -36,7 +36,7 @@ class GreedyPlayer:
 
 
 def act(state, player_column, time_from_shoot):
-    disp = False
+    disp = False # True #
     if len(state.shape) == 3:
         state = state[:, :, 0]
     elif len(state.shape) == 4:
