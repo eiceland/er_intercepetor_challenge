@@ -405,10 +405,10 @@ class OffPolicyAlgorithm(BaseAlgorithm):
 
                 # Select action randomly or according to policy
                 action, buffer_action = self._sample_action(learning_starts, action_noise)
-                dp_action = [self.greedy_player.act(self._last_obs)]## Rafi
-
+                if self.gamma == 0.95001235512354532135: ## Rafi: HACK: this gamma enables imitation learning inside venv2/Lib/site-packages/stable_baselines3/common/off_policy_algorithm.py
+                    action = [self.greedy_player.act(self._last_obs)] ## Rafi
                     # Rescale and perform action
-                new_obs, reward, done, infos = env.step(dp_action)
+                new_obs, reward, done, infos = env.step(action)
 
                 self.num_timesteps += 1
                 episode_timesteps += 1

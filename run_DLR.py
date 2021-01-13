@@ -110,9 +110,9 @@ if __name__ == '__main__':
     res_path = os.path.join(os.getcwd(), "log", "res")
     if not os.path.exists(res_path):
         os.mkdir(res_path)
-    for gamma in [0.95]:
+    for gamma in [0.95001235512354532135]: ## Rafi: HACK: this gamma enables imitation learning inside venv2/Lib/site-packages/stable_baselines3/common/off_policy_algorithm.py
         for lr in [0.002]: #[0.0001, 0.0002, 0.0004]:
-            model_path_and_name = os.path.join(model_path, "lr_{}_gamma_{}.zip".format(lr, gamma))
+            model_path_and_name = os.path.join(model_path, "il_{}_gamma_{}.zip".format(lr, gamma))
             run_dlr(env_id='interceptor-v0', model_path_and_name=model_path_and_name, lr=lr, gamma=gamma)
             print("\ntesting model {}\n".format(model_path_and_name))
             test_model(env_id='interceptor-v0',model_path_and_name=model_path_and_name, n_games=500, res_path=res_path)
