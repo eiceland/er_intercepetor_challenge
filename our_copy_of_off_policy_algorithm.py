@@ -393,8 +393,6 @@ class OffPolicyAlgorithm(BaseAlgorithm):
         callback.on_rollout_start()
         continue_training = True
 
-        last_obs = []
-
         while total_steps < n_steps or total_episodes < n_episodes:
             done = False
             episode_reward, episode_timesteps = 0.0, 0
@@ -407,10 +405,7 @@ class OffPolicyAlgorithm(BaseAlgorithm):
 
                 # Select action randomly or according to policy
                 action, buffer_action = self._sample_action(learning_starts, action_noise)
-                if not self._last_obs == []:
-                    dp_action = [self.greedy_player.act(self._last_obs)]## Rafi
-                else:
-                    dp_action = action
+                dp_action = [self.greedy_player.act(self._last_obs)]## Rafi
 
                     # Rescale and perform action
                 new_obs, reward, done, infos = env.step(dp_action)
