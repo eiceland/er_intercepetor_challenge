@@ -105,7 +105,7 @@ if __name__ == '__main__':
     scores = []
     for horizon in [8, 21, 31]:
         print("horizon", horizon)
-        for i in range(100):
+        for i in range(200):
             # print("game", i)
             score = play(horizon)
             scores.append(score)

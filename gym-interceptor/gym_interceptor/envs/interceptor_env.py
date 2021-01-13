@@ -18,7 +18,8 @@ class InterceptorEnv(gym.Env):
         self.game_score = 0
         self.my_score = 0
         #self.observation_space = gym.spaces.Box(low=0, high=255, shape=(401, 31, 3))
-        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(100, 31,1), dtype = np.uint8)
+        # self.observation_space = gym.spaces.Box(low=0, high=255, shape=(100, 31,1), dtype = np.uint8)
+        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(100, 61, 1), dtype = np.uint8)
         self.action_space = gym.spaces.Discrete(4)
         self.state = None
         self.done = False
@@ -51,6 +52,11 @@ class InterceptorEnv(gym.Env):
         self.my_intr.__init__()
         Interceptor_V2.Init()
         self.state,_,_,_,_ = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        new_game_map = np.zeros((401, 61))
+        player_loc = np.argmax(self.state[0])
+        shift = 30 - player_loc
+        new_game_map[:, shift:shift+31] = self.state
+        self.state = new_game_map
         return np.expand_dims(self.state[:100], axis=2)
 
     def step(self, action):
@@ -67,26 +73,31 @@ class InterceptorEnv(gym.Env):
         self.my_score += reward
         self.city_inter += city_inter
         self.f_inter += f_inter
-        if self.stp % 100 == 0:
-            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
-                  "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
-                  "city interceptions", self.city_inter, "field rockets", self.f_rockets, "field hits", self.f_hits,
-                  "field interceptions", self.f_inter, "empty shoots", self.empty_inter)
+        # if self.stp % 100 == 0:
+            # print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
+            #       "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
+            #       "city interceptions", self.city_inter, "field rockets", self.f_rockets, "field hits", self.f_hits,
+            #       "field interceptions", self.f_inter, "empty shoots", self.empty_inter)
         self.stp += 1
         #next round: see what's new in the world
         self.r_locs, self.i_locs, self.c_locs, self.ang, self.game_score  = Interceptor_V2.Game_step(action)
         #now calcluate the game map for the next round
         game_map, new_city_rocket, n_city_hits, new_f_rocket, n_f_hits = self.my_intr.calculate_map(self.r_locs, self.c_locs, self.ang, self.stp)
+        new_game_map = np.zeros((401, 61))
+        player_loc = np.argmax(game_map[0])
+        shift = 30 - player_loc
+        new_game_map[:, shift:shift+31] = game_map
+
         self.city_rockets += new_city_rocket
         self.city_hits += n_city_hits
         self.f_rockets += new_f_rocket
         self.f_hits += n_f_hits
 
-        self.state = game_map
+        self.state = new_game_map
         if self.stp >= self.max_steps:
             self.done = True
-            print("step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
-                  "game score", self.game_score, "city rockets", self.city_rockets, "city hits", self.city_hits,
+            print("game score", self.game_score, "step", self.stp, "score", reward, "total score", self.my_score, "rockets", len(self.r_locs),
+                  "city rockets", self.city_rockets, "city hits", self.city_hits,
                   "city interceptions", self.city_inter, "field rockets", self.f_rockets, "field hits", self.f_hits,
                   "field interceptions", self.f_inter, "empty shoots", self.empty_inter, "\n")
         else:
