@@ -119,6 +119,7 @@ class InterceptorEnv(gym.Env):
             "empty shoots": self.empty_inter
         }
         adjusted_reward = reward * self.reward_factor
+        # Interceptor_V2.Draw()
         return np.expand_dims(self.state[:30], axis=2), adjusted_reward, self.done, info
 
     def seed(self, s):
